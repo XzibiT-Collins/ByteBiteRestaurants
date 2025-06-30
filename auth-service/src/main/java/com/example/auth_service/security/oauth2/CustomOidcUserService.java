@@ -36,6 +36,7 @@ public class CustomOidcUserService extends OidcUserService {
                             .email(email)
                             .username(username)
                             .password("N/A")
+                            .role(RoleEnum.ROLE_CUSTOMER.toString())
                             .build()
             );
         }
