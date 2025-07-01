@@ -6,7 +6,7 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/XzibiT-Collins/ByteBiteRestaurants/tree/main/configurations
+          uri: https://github.com/XzibiT-Collins/ByteBite-configs
           default-label: main
   application:
     name: config-server
