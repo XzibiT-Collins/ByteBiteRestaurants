@@ -1,5 +1,7 @@
 package com.example.auth_service.security.jwt;
 
+import com.example.auth_service.models.User;
+import com.example.auth_service.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,13 +18,19 @@ import java.util.function.Function;
 @Service
 public class JwtService {
     private final JwtConfig jwtConfig;
+    private final UserRepository userRepository;
 
-    public JwtService(JwtConfig jwtConfig){
+    public JwtService(JwtConfig jwtConfig, UserRepository userRepository) {
         this.jwtConfig = jwtConfig;
+        this.userRepository = userRepository;
     }
 
     public String generateToken(String email) {
         Map<String, Object> claims = new HashMap<>();
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User Not Found with email: " + email));
+        claims.put("role", user.getRole());
+        claims.put("id", user.getId());
 
         SecretKey secreteKey = jwtConfig.getSecreteKey(); // retrieve secret key from config
         Date now = new Date(System.currentTimeMillis());
