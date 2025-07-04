@@ -12,6 +12,7 @@ public class RestaurantMapper {
                 .location(restaurantRequest.location())
                 .email(restaurantRequest.email())
                 .phoneNumber(restaurantRequest.phoneNumber())
+                .ownerId(restaurantRequest.ownerId())
                 .build();
     }
 

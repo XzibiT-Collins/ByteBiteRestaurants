@@ -30,7 +30,7 @@ public class JwtService {
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("User Not Found with email: " + email));
         claims.put("role", user.getRole());
-//        claims.put("id", user.getId());
+        claims.put("userId", user.getId());
 
         SecretKey secreteKey = jwtConfig.getSecreteKey(); // retrieve secret key from config
         Date now = new Date(System.currentTimeMillis());

@@ -8,7 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 
 public interface RestaurantService {
-    ResponseEntity<Restaurant> addRestaurant(RestaurantRequest restaurantRequest);
+    ResponseEntity<RestaurantResponse> addRestaurant(RestaurantRequest restaurantRequest);
     ResponseEntity<RestaurantResponse> getRestaurantById(long id);
     ResponseEntity<Page<RestaurantResponse>> getAllRestaurants(int pageNumber,String sortField);
     ResponseEntity<RestaurantResponse> updateRestaurant(RestaurantUpdateRequest restaurantUpdateRequest, long id);
