@@ -38,11 +38,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             //create authObj with claims
             String username = jwtService.extractUsername(token);
             String role = jwtService.extractRole(token);
-            logger.info("Roles: "+ role);
+            long userId = jwtService.extractUserId(token);
 
-
+            logger.info("UserId: "+ userId + " Username: "+ username + " Role: "+ role);
             UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(username, null, Collections.singleton(new SimpleGrantedAuthority(role)));
+                    new UsernamePasswordAuthenticationToken(userId, null, Collections.singleton(new SimpleGrantedAuthority(role)));
 
             SecurityContextHolder.getContext().setAuthentication(auth);
         }catch (JwtException e){

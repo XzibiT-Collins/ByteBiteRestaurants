@@ -36,13 +36,13 @@ public class RestaurantController {
         return restaurantService.getAllRestaurants(pageNumber,sortField.getField());
     }
 
-    @PreAuthorize("hasRole('RESTAURANT_OWNER') and @resourceOwner.isRestaurantOwner(#restaurantId,#authentication)")
+    @PreAuthorize("hasRole('RESTAURANT_OWNER') and @resourceOwner.isRestaurantOwner(#restaurantId,authentication.getPrincipal())")
     @PatchMapping("/{restaurantId}")
     public ResponseEntity<RestaurantResponse> updateRestaurant(@RequestBody RestaurantUpdateRequest restaurantUpdateRequest, @PathVariable long restaurantId){
         return restaurantService.updateRestaurant(restaurantUpdateRequest,restaurantId);
     }
 
-    @PreAuthorize("hasRole('RESTAURANT_OWNER') and @resourceOwner.isRestaurantOwner(#restaurantId,#authentication)")
+    @PreAuthorize("hasRole('RESTAURANT_OWNER') and @resourceOwner.isRestaurantOwner(#restaurantId,authentication.getPrincipal())")
     @DeleteMapping("/{restaurantId}")
     public ResponseEntity<String> deleteRestaurant(@PathVariable long restaurantId){
         return restaurantService.deleteRestaurant(restaurantId);
