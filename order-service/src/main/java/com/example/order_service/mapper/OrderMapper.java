@@ -3,6 +3,7 @@ package com.example.order_service.mapper;
 import com.example.order_service.dto.requestDto.OrderRequest;
 import com.example.order_service.dto.responseDto.OrderResponse;
 import com.example.order_service.model.Order;
+import com.example.order_service.utils.OrderStatus;
 
 public class OrderMapper {
     public static OrderResponse toOrderResponse(Order order) {
@@ -25,6 +26,7 @@ public class OrderMapper {
                 .menuItemId(orderRequest.menuItemId())
                 .restaurantId(orderRequest.restaurantId())
                 .quantity(orderRequest.quantity())
+                .status(OrderStatus.PENDING)
                 .totalPrice(orderRequest.totalPrice())
                 .build();
     }

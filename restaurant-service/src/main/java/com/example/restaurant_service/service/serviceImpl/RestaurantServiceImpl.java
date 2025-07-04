@@ -1,5 +1,6 @@
 package com.example.restaurant_service.service.serviceImpl;
 
+import com.example.restaurant_service.dto.restaurantDto.kafkaMessageDto.OrderRequest;
 import com.example.restaurant_service.dto.restaurantDto.requestDto.RestaurantRequest;
 import com.example.restaurant_service.dto.restaurantDto.requestDto.RestaurantUpdateRequest;
 import com.example.restaurant_service.dto.restaurantDto.responseDto.RestaurantResponse;
@@ -12,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -66,5 +68,10 @@ public class RestaurantServiceImpl implements RestaurantService {
         Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(()-> new RuntimeException("Restaurant Not Found with id: " + id));
         restaurantRepository.delete(restaurant);
         return ResponseEntity.ok("Restaurant Deleted Successfully");
+    }
+
+    @KafkaListener(topics = "order-request", groupId = "restaurant-group",containerFactory = "kafkaListenerContainerFactory")
+    public void prepareOrder(OrderRequest orderRequest){
+        System.out.println("Preparing Order for: "+ orderRequest);
     }
 }

@@ -11,14 +11,18 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class OrderServiceImpl implements OrderService{
     private final OrderRepository orderRepository;
+    private final KafkaTemplate<String,OrderRequest> kafkaTemplate;
 
-    public OrderServiceImpl(OrderRepository orderRepository) {
+
+    public OrderServiceImpl(OrderRepository orderRepository, KafkaTemplate<String, OrderRequest> kafkaTemplate) {
         this.orderRepository = orderRepository;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
@@ -27,6 +31,8 @@ public class OrderServiceImpl implements OrderService{
             throw new RuntimeException("Order request is null");
         }
         //TODO: send message to restaurant service to prepare order
+        kafkaTemplate.send("order-request",orderRequest);
+
         return ResponseEntity.ok(OrderMapper.toOrderResponse(orderRepository.save(OrderMapper.toOrder(orderRequest))));
     }
 
