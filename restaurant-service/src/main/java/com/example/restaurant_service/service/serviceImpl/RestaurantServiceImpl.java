@@ -24,9 +24,10 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 
     @Override
-    public ResponseEntity<Restaurant> addRestaurant(RestaurantRequest restaurantRequest) {
+    public ResponseEntity<RestaurantResponse> addRestaurant(RestaurantRequest restaurantRequest) {
         if(restaurantRequest != null){
-            return ResponseEntity.ok(restaurantRepository.save(RestaurantMapper.toRestaurant(restaurantRequest)));
+            Restaurant restaurant = restaurantRepository.save(RestaurantMapper.toRestaurant(restaurantRequest));
+            return ResponseEntity.ok(RestaurantMapper.toRestaurantResponse(restaurant));
         }else{
             throw new RuntimeException("Restaurant Request is Null");
         }

@@ -28,7 +28,7 @@ public class JwtService {
 
     public String extractRole(java.lang.String token) {
         Claims claims = extractAllClaims(token);
-        return (String) claims.get("role");
+        return claims.get("role").toString();
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimResolver) {
@@ -46,5 +46,10 @@ public class JwtService {
                 .getPayload();
 
         return claims;
+    }
+
+    public long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        return Long.parseLong(claims.get("userId").toString());
     }
 }

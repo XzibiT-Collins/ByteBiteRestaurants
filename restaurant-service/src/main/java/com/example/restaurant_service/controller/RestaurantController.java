@@ -1,8 +1,13 @@
 package com.example.restaurant_service.controller;
 
+import com.example.restaurant_service.dto.restaurantDto.requestDto.RestaurantRequest;
+import com.example.restaurant_service.dto.restaurantDto.requestDto.RestaurantUpdateRequest;
 import com.example.restaurant_service.dto.restaurantDto.responseDto.RestaurantResponse;
 import com.example.restaurant_service.service.serviceInterfaces.RestaurantService;
+import com.example.restaurant_service.utils.RestaurantSort;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,6 +24,27 @@ public class RestaurantController {
         return restaurantService.getRestaurantById(id);
     }
 
-//    @PostMapping
-//    protected ResponseEntity<RestaurantResponse> addRestaurant(){}
+    @PreAuthorize( "hasRole('RESTAURANT_OWNER')")
+    @PostMapping
+    protected ResponseEntity<RestaurantResponse> addRestaurant(@RequestBody RestaurantRequest restaurantRequest){
+        return restaurantService.addRestaurant(restaurantRequest);
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<Page<RestaurantResponse>> getAllRestaurants(@RequestParam(required = false, defaultValue = "0") int pageNumber,
+                                                                      @RequestParam(required = false, defaultValue = "SORT_BY_NAME") RestaurantSort sortField){
+        return restaurantService.getAllRestaurants(pageNumber,sortField.getField());
+    }
+
+    @PreAuthorize("hasRole('RESTAURANT_OWNER') and @resourceOwner.isRestaurantOwner(#restaurantId,#authentication)")
+    @PatchMapping("/{restaurantId}")
+    public ResponseEntity<RestaurantResponse> updateRestaurant(@RequestBody RestaurantUpdateRequest restaurantUpdateRequest, @PathVariable long restaurantId){
+        return restaurantService.updateRestaurant(restaurantUpdateRequest,restaurantId);
+    }
+
+    @PreAuthorize("hasRole('RESTAURANT_OWNER') and @resourceOwner.isRestaurantOwner(#restaurantId,#authentication)")
+    @DeleteMapping("/{restaurantId}")
+    public ResponseEntity<String> deleteRestaurant(@PathVariable long restaurantId){
+        return restaurantService.deleteRestaurant(restaurantId);
+    }
 }
