@@ -4,6 +4,8 @@ import com.example.order_service.dto.requestDto.OrderRequest;
 import com.example.order_service.dto.responseDto.OrderResponse;
 import com.example.order_service.model.Order;
 
+import java.time.Instant;
+
 public class OrderMapper {
     public static OrderResponse toOrderResponse(Order order) {
         return OrderResponse
@@ -26,6 +28,7 @@ public class OrderMapper {
                 .restaurantId(orderRequest.restaurantId())
                 .quantity(orderRequest.quantity())
                 .totalPrice(orderRequest.totalPrice())
+                .orderTime(Instant.now())
                 .build();
     }
 }
