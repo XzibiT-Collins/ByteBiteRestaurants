@@ -42,7 +42,15 @@ public class JwtAuthFilter implements GlobalFilter {
             "/api/v1/auth/login",
             "/api/v1/auth/register",
             "/error",
-            "/api/v1/auth/oauth2"
+            "/api/v1/auth/oauth2",
+            "/swagger-ui",
+            "/swagger-ui/index.html",
+            "/swagger-resources",
+            "/swagger",
+            "/v3/api-docs",
+            "/order-service/v3/api-docs",
+            "/auth-service/v3/api-docs",
+            "/restaurant-service/v3/api-docs"
     );
 
     @Override

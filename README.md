@@ -338,6 +338,15 @@ bytebite/
 ├── 📁 LICENSE
 ├── 📁 pom.xml
 └── 📁 README.md
-
 ```
 
+### Swagger API endpoints
+```text
+    Swagger through API Gateway: http://localhost:8000/swagger-ui/index.html
+```
+Auth-Service Endpoints
+![swagger-ui](images/swagger-ui.png)
+Order-Service Endpoints
+![swagger-ui](images/swagger-ui1.png)
+Restaurant-Service Endpoints
+![swagger-ui](images/swagger-ui2.png)
