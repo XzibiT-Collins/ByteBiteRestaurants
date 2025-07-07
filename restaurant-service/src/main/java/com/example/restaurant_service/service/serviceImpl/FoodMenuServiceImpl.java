@@ -1,8 +1,10 @@
 package com.example.restaurant_service.service.serviceImpl;
 
+import com.example.restaurant_service.dto.ApiResponseDto;
 import com.example.restaurant_service.dto.foodMenuDto.requestDto.FoodMenuRequest;
 import com.example.restaurant_service.dto.foodMenuDto.requestDto.FoodMenuUpdateRequest;
 import com.example.restaurant_service.dto.foodMenuDto.responseDto.FoodMenuResponse;
+import com.example.restaurant_service.globalExceptionHandler.customExceptions.RestaurantException;
 import com.example.restaurant_service.mapper.FoodMenuMapper;
 import com.example.restaurant_service.model.FoodMenu;
 import com.example.restaurant_service.model.Restaurant;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -30,54 +33,54 @@ public class FoodMenuServiceImpl implements FoodMenuService {
 
 
     @Override
-    public ResponseEntity<FoodMenuResponse> addFoodMenu(long restaurantId,FoodMenuRequest foodMenuRequest) {
+    public ResponseEntity<ApiResponseDto<FoodMenuResponse>> addFoodMenu(long restaurantId, FoodMenuRequest foodMenuRequest) {
         if(foodMenuRequest != null){
-            Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RuntimeException("Restaurant Not Found with id: " + restaurantId));
+            Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantException("Restaurant Not Found with id: " + restaurantId));
             FoodMenu menu = FoodMenuMapper.toFoodMenu(foodMenuRequest);
             menu.setRestaurant(restaurant);
-            return ResponseEntity.ok(FoodMenuMapper.toFoodMenuResponse(foodMenuRepository.save(menu)));
+            return ResponseEntity.ok(ApiResponseDto.success(FoodMenuMapper.toFoodMenuResponse(foodMenuRepository.save(menu)), HttpStatus.CREATED.value()));
         }else{
-            throw new RuntimeException("Food Menu Request is Null");
+            throw new RestaurantException("Food Menu Request is Null");
         }
     }
 
     @Override
-    public ResponseEntity<FoodMenuResponse> getFoodMenuById(long id,long restaurantId) {
-        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RuntimeException("Restaurant Not Found with id: " + restaurantId));
-        FoodMenu menu = foodMenuRepository.findByIdAndRestaurant(id,restaurant).orElseThrow(() -> new RuntimeException("Menu item Not Found with id: " + id));
-        return ResponseEntity.ok(FoodMenuMapper.toFoodMenuResponse(menu));
+    public ResponseEntity<ApiResponseDto<FoodMenuResponse>> getFoodMenuById(long id,long restaurantId) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantException("Restaurant Not Found with id: " + restaurantId));
+        FoodMenu menu = foodMenuRepository.findByIdAndRestaurant(id,restaurant).orElseThrow(() -> new RestaurantException("Menu item Not Found with id: " + id));
+        return ResponseEntity.ok(ApiResponseDto.success(FoodMenuMapper.toFoodMenuResponse(menu), HttpStatus.OK.value()));
     }
 
     @Override
-    public ResponseEntity<Page<FoodMenuResponse>> getAllFoodMenus(long restaurantId,int pageNumber, String sortField) {
+    public ResponseEntity<ApiResponseDto<Page<FoodMenuResponse>>> getAllFoodMenus(long restaurantId,int pageNumber, String sortField) {
         int paginateBy = 10;
         Sort sort = Sort.by(sortField);
         Pageable pageable = PageRequest.of(pageNumber, paginateBy, sort);
 
-        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RuntimeException("Restaurant Not Found with id: " + restaurantId));
+        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantException("Restaurant Not Found with id: " + restaurantId));
 
-        return ResponseEntity.ok(foodMenuRepository.findAllByRestaurant(restaurant,pageable).map(FoodMenuMapper::toFoodMenuResponse)) ;
+        return ResponseEntity.ok(ApiResponseDto.success(foodMenuRepository.findAllByRestaurant(restaurant,pageable).map(FoodMenuMapper::toFoodMenuResponse), HttpStatus.OK.value())) ;
     }
 
     @Override
-    public ResponseEntity<FoodMenuResponse> updateFoodMenu(FoodMenuUpdateRequest foodMenuUpdateRequest, long restaurantId, long menuId) {
-        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RuntimeException("Restaurant Not Found with id: " + restaurantId));
+    public ResponseEntity<ApiResponseDto<FoodMenuResponse>> updateFoodMenu(FoodMenuUpdateRequest foodMenuUpdateRequest, long restaurantId, long menuId) {
+        Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantException("Restaurant Not Found with id: " + restaurantId));
 
-        FoodMenu menu = foodMenuRepository.findByIdAndRestaurant(menuId,restaurant).orElseThrow(() -> new RuntimeException("Menu item Not Found with id: " + menuId));
+        FoodMenu menu = foodMenuRepository.findByIdAndRestaurant(menuId,restaurant).orElseThrow(() -> new RestaurantException("Menu item Not Found with id: " + menuId));
 
         if(foodMenuUpdateRequest.name() != null) menu.setName(foodMenuUpdateRequest.name());
         if(foodMenuUpdateRequest.description() != null) menu.setDescription(foodMenuUpdateRequest.description());
         if (foodMenuUpdateRequest.price() != null) menu.setPrice(foodMenuUpdateRequest.price());
 
-        return ResponseEntity.ok(FoodMenuMapper.toFoodMenuResponse(foodMenuRepository.save(menu)));
+        return ResponseEntity.ok(ApiResponseDto.success(FoodMenuMapper.toFoodMenuResponse(foodMenuRepository.save(menu)),HttpStatus.OK.value()));
     }
 
     @Override
-    public ResponseEntity<String> deleteFoodMenu(long restaurantId, long id) {
+    public ResponseEntity<ApiResponseDto<String>> deleteFoodMenu(long restaurantId, long id) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RuntimeException("Restaurant Not Found with id: " + restaurantId));
         FoodMenu menu = foodMenuRepository.findByIdAndRestaurant(id,restaurant).orElseThrow(() -> new RuntimeException("Menu item Not Found with id: " + id));
 
         foodMenuRepository.delete(menu);
-        return ResponseEntity.ok("Menu Deleted Successfully");
+        return ResponseEntity.ok(ApiResponseDto.success("Menu Deleted Successfully", HttpStatus.OK.value()));
     }
 }

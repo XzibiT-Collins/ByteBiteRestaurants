@@ -1,10 +1,12 @@
 package com.example.restaurant_service.service.serviceImpl;
 
+import com.example.restaurant_service.dto.ApiResponseDto;
 import com.example.restaurant_service.dto.restaurantDto.kafkaMessageDto.NotificationPayload;
 import com.example.restaurant_service.dto.restaurantDto.kafkaMessageDto.OrderRequest;
 import com.example.restaurant_service.dto.restaurantDto.requestDto.RestaurantRequest;
 import com.example.restaurant_service.dto.restaurantDto.requestDto.RestaurantUpdateRequest;
 import com.example.restaurant_service.dto.restaurantDto.responseDto.RestaurantResponse;
+import com.example.restaurant_service.globalExceptionHandler.customExceptions.RestaurantException;
 import com.example.restaurant_service.mapper.RestaurantMapper;
 import com.example.restaurant_service.model.Restaurant;
 import com.example.restaurant_service.repository.RestaurantRepository;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -30,48 +33,48 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 
     @Override
-    public ResponseEntity<RestaurantResponse> addRestaurant(RestaurantRequest restaurantRequest) {
+    public ResponseEntity<ApiResponseDto<RestaurantResponse>> addRestaurant(RestaurantRequest restaurantRequest) {
         if(restaurantRequest != null){
             Restaurant restaurant = restaurantRepository.save(RestaurantMapper.toRestaurant(restaurantRequest));
-            return ResponseEntity.ok(RestaurantMapper.toRestaurantResponse(restaurant));
+            return ResponseEntity.ok(ApiResponseDto.success(RestaurantMapper.toRestaurantResponse(restaurant), HttpStatus.CREATED.value()));
         }else{
-            throw new RuntimeException("Restaurant Request is Null");
+            throw new RestaurantException("Restaurant Request is Null");
         }
     }
 
     @Override
-    public ResponseEntity<RestaurantResponse> getRestaurantById(long id) {
-        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(()-> new RuntimeException("Restaurant Not Found with id: " + id));
+    public ResponseEntity<ApiResponseDto<RestaurantResponse>> getRestaurantById(long id) {
+        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(()-> new RestaurantException("Restaurant Not Found with id: " + id));
 
-        return ResponseEntity.ok(RestaurantMapper.toRestaurantResponse(restaurant));
+        return ResponseEntity.ok(ApiResponseDto.success(RestaurantMapper.toRestaurantResponse(restaurant), HttpStatus.OK.value()));
     }
 
     @Override
-    public ResponseEntity<Page<RestaurantResponse>> getAllRestaurants(int pageNumber,String sortField) {
+    public ResponseEntity<ApiResponseDto<Page<RestaurantResponse>>> getAllRestaurants(int pageNumber,String sortField) {
         int paginateBy = 10;
         Sort sort = Sort.by(sortField);
         Pageable pageable = PageRequest.of(pageNumber, paginateBy, sort);
 
-        return ResponseEntity.ok(restaurantRepository.findAll(pageable).map(RestaurantMapper::toRestaurantResponse));
+        return ResponseEntity.ok(ApiResponseDto.success(restaurantRepository.findAll(pageable).map(RestaurantMapper::toRestaurantResponse), HttpStatus.OK.value()));
     }
 
     @Override
-    public ResponseEntity<RestaurantResponse> updateRestaurant(RestaurantUpdateRequest restaurantUpdateRequest, long id) {
-        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(()-> new RuntimeException("Restaurant Not Found with id: " + id));
+    public ResponseEntity<ApiResponseDto<RestaurantResponse>> updateRestaurant(RestaurantUpdateRequest restaurantUpdateRequest, long id) {
+        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(()-> new RestaurantException("Restaurant Not Found with id: " + id));
 
         if(restaurantUpdateRequest.name() != null) restaurant.setName(restaurantUpdateRequest.name());
         if(restaurantUpdateRequest.location() != null) restaurant.setLocation(restaurantUpdateRequest.location());
         if(restaurantUpdateRequest.email() != null) restaurant.setEmail(restaurantUpdateRequest.email());
         if(restaurantUpdateRequest.phoneNumber() != null) restaurant.setPhoneNumber(restaurantUpdateRequest.phoneNumber());
 
-        return ResponseEntity.ok(RestaurantMapper.toRestaurantResponse(restaurantRepository.save(restaurant)));
+        return ResponseEntity.ok(ApiResponseDto.success(RestaurantMapper.toRestaurantResponse(restaurantRepository.save(restaurant)), HttpStatus.OK.value()));
     }
 
     @Override
-    public ResponseEntity<String> deleteRestaurant(long id) {
+    public ResponseEntity<ApiResponseDto<String>> deleteRestaurant(long id) {
         Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(()-> new RuntimeException("Restaurant Not Found with id: " + id));
         restaurantRepository.delete(restaurant);
-        return ResponseEntity.ok("Restaurant Deleted Successfully");
+        return ResponseEntity.ok(ApiResponseDto.success("Restaurant Deleted Successfully", HttpStatus.OK.value()));
     }
 
     @KafkaListener(topics = "order-request", groupId = "restaurant-group",containerFactory = "kafkaListenerContainerFactory")
@@ -80,7 +83,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         try{
             Thread.sleep(10000);
         }catch (InterruptedException e){
-            throw new RuntimeException("Failed to simulate sleep");
+            throw new RestaurantException("Failed to prepare order.");
         }
         //TODO fetch user email from user-service
         NotificationPayload notificationPayload = new NotificationPayload("huvisoncollins@gmail.com","Your order have been prepared.");
