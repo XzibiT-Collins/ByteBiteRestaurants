@@ -1,16 +1,20 @@
 package com.example.restaurant_service.service.serviceImpl;
 
 import com.example.restaurant_service.dto.ApiResponseDto;
+import com.example.restaurant_service.dto.UserResponseDto;
 import com.example.restaurant_service.dto.restaurantDto.kafkaMessageDto.NotificationPayload;
 import com.example.restaurant_service.dto.restaurantDto.kafkaMessageDto.OrderRequest;
 import com.example.restaurant_service.dto.restaurantDto.requestDto.RestaurantRequest;
 import com.example.restaurant_service.dto.restaurantDto.requestDto.RestaurantUpdateRequest;
 import com.example.restaurant_service.dto.restaurantDto.responseDto.RestaurantResponse;
+import com.example.restaurant_service.feignClient.UserClient;
 import com.example.restaurant_service.globalExceptionHandler.customExceptions.RestaurantException;
 import com.example.restaurant_service.mapper.RestaurantMapper;
 import com.example.restaurant_service.model.Restaurant;
 import com.example.restaurant_service.repository.RestaurantRepository;
 import com.example.restaurant_service.service.serviceInterfaces.RestaurantService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,13 +26,18 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class RestaurantServiceImpl implements RestaurantService {
     private final RestaurantRepository restaurantRepository;
     private final KafkaTemplate<String, NotificationPayload> kafkaTemplate;
+    private final UserClient userClient;
 
-    public RestaurantServiceImpl(RestaurantRepository restaurantRepository, KafkaTemplate<String, NotificationPayload> kafkaTemplate) {
+    public RestaurantServiceImpl(RestaurantRepository restaurantRepository,
+                                 KafkaTemplate<String, NotificationPayload> kafkaTemplate,
+                                 UserClient userClient) {
         this.restaurantRepository = restaurantRepository;
         this.kafkaTemplate = kafkaTemplate;
+        this.userClient = userClient;
     }
 
 
@@ -86,7 +95,24 @@ public class RestaurantServiceImpl implements RestaurantService {
             throw new RestaurantException("Failed to prepare order.");
         }
         //TODO fetch user email from user-service
-        NotificationPayload notificationPayload = new NotificationPayload("huvisoncollins@gmail.com","Your order have been prepared.");
+        log.info("Making a request to fetch user details for: {} ",orderRequest.customerId());
+        String email = "";
+
+        try{
+            ResponseEntity<ApiResponseDto<UserResponseDto>> user = userClient.getUserById(orderRequest.customerId());
+            log.info("Response status: {} ",user.getStatusCode());
+            log.warn("Response body: {} ",user.getBody());
+            log.warn("Response headers: {} ",user.getHeaders());
+            log.info("User Details fetched for: {} with email: {}",orderRequest.customerId(), user.getBody().getData().email());
+            if(user.getBody() != null){
+                email = user.getBody().getData().email();
+            }
+        }catch (Exception e){
+            log.error("Failed to fetch user details for: {} with error: {}",orderRequest.customerId(), e.getMessage());
+        }
+
+        NotificationPayload notificationPayload = new NotificationPayload(email,"Your order have been prepared and is out for delivery.");
         kafkaTemplate.send("order-completed",notificationPayload);
+        log.info("Order Prepared Successfully for: {} with email: {}",orderRequest.customerId(), email);
     }
 }

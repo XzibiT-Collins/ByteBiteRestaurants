@@ -7,7 +7,9 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Base64;
+import java.util.Date;
 import java.util.function.Function;
 
 @Service
@@ -51,5 +53,10 @@ public class JwtService {
     public long extractUserId(String token) {
         Claims claims = extractAllClaims(token);
         return Long.parseLong(claims.get("userId").toString());
+    }
+
+    public boolean isTokenExpired(String token){
+        Claims claims = extractAllClaims(token);
+        return (claims.getExpiration().before(Date.from(Instant.now())));
     }
 }

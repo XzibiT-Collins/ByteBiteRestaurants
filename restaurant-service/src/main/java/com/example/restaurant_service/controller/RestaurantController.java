@@ -1,5 +1,6 @@
 package com.example.restaurant_service.controller;
 
+import com.example.restaurant_service.dto.ApiResponseDto;
 import com.example.restaurant_service.dto.restaurantDto.requestDto.RestaurantRequest;
 import com.example.restaurant_service.dto.restaurantDto.requestDto.RestaurantUpdateRequest;
 import com.example.restaurant_service.dto.restaurantDto.responseDto.RestaurantResponse;
@@ -20,31 +21,31 @@ public class RestaurantController {
     }
 
     @GetMapping("/{id}")
-    protected ResponseEntity<RestaurantResponse> getRestaurantById(@PathVariable long id){
+    protected ResponseEntity<ApiResponseDto<RestaurantResponse>> getRestaurantById(@PathVariable long id){
         return restaurantService.getRestaurantById(id);
     }
 
     @PreAuthorize( "hasRole('RESTAURANT_OWNER')")
     @PostMapping
-    protected ResponseEntity<RestaurantResponse> addRestaurant(@RequestBody RestaurantRequest restaurantRequest){
+    protected ResponseEntity<ApiResponseDto<RestaurantResponse>> addRestaurant(@RequestBody RestaurantRequest restaurantRequest){
         return restaurantService.addRestaurant(restaurantRequest);
     }
 
     @GetMapping("/")
-    public ResponseEntity<Page<RestaurantResponse>> getAllRestaurants(@RequestParam(required = false, defaultValue = "0") int pageNumber,
+    public ResponseEntity<ApiResponseDto<Page<RestaurantResponse>>> getAllRestaurants(@RequestParam(required = false, defaultValue = "0") int pageNumber,
                                                                       @RequestParam(required = false, defaultValue = "SORT_BY_NAME") RestaurantSort sortField){
         return restaurantService.getAllRestaurants(pageNumber,sortField.getField());
     }
 
     @PreAuthorize("hasRole('RESTAURANT_OWNER') and @resourceOwner.isRestaurantOwner(#restaurantId,authentication.getPrincipal())")
     @PatchMapping("/{restaurantId}")
-    public ResponseEntity<RestaurantResponse> updateRestaurant(@RequestBody RestaurantUpdateRequest restaurantUpdateRequest, @PathVariable long restaurantId){
+    public ResponseEntity<ApiResponseDto<RestaurantResponse>> updateRestaurant(@RequestBody RestaurantUpdateRequest restaurantUpdateRequest, @PathVariable long restaurantId){
         return restaurantService.updateRestaurant(restaurantUpdateRequest,restaurantId);
     }
 
     @PreAuthorize("hasRole('RESTAURANT_OWNER') and @resourceOwner.isRestaurantOwner(#restaurantId,authentication.getPrincipal())")
     @DeleteMapping("/{restaurantId}")
-    public ResponseEntity<String> deleteRestaurant(@PathVariable long restaurantId){
+    public ResponseEntity<ApiResponseDto<String>> deleteRestaurant(@PathVariable long restaurantId){
         return restaurantService.deleteRestaurant(restaurantId);
     }
 }
