@@ -11,6 +11,7 @@ import com.example.restaurant_service.model.Restaurant;
 import com.example.restaurant_service.repository.FoodMenuRepository;
 import com.example.restaurant_service.repository.RestaurantRepository;
 import com.example.restaurant_service.service.serviceInterfaces.FoodMenuService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Objects;
 
+@Slf4j
 @Service
 public class FoodMenuServiceImpl implements FoodMenuService {
     private final FoodMenuRepository foodMenuRepository;
@@ -38,8 +40,10 @@ public class FoodMenuServiceImpl implements FoodMenuService {
             Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantException("Restaurant Not Found with id: " + restaurantId));
             FoodMenu menu = FoodMenuMapper.toFoodMenu(foodMenuRequest);
             menu.setRestaurant(restaurant);
+            log.info("Food Menu Saved Successfully with id: {} for restaurant with id: {}",menu.getId(),restaurant.getId());
             return ResponseEntity.ok(ApiResponseDto.success(FoodMenuMapper.toFoodMenuResponse(foodMenuRepository.save(menu)), HttpStatus.CREATED.value()));
         }else{
+            log.info("Unable to save food menu with null request.");
             throw new RestaurantException("Food Menu Request is Null");
         }
     }
@@ -48,6 +52,7 @@ public class FoodMenuServiceImpl implements FoodMenuService {
     public ResponseEntity<ApiResponseDto<FoodMenuResponse>> getFoodMenuById(long id,long restaurantId) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantException("Restaurant Not Found with id: " + restaurantId));
         FoodMenu menu = foodMenuRepository.findByIdAndRestaurant(id,restaurant).orElseThrow(() -> new RestaurantException("Menu item Not Found with id: " + id));
+        log.info("Food Menu Found with id: {} for restaurant with id: {}",menu.getId(),restaurant.getId());
         return ResponseEntity.ok(ApiResponseDto.success(FoodMenuMapper.toFoodMenuResponse(menu), HttpStatus.OK.value()));
     }
 
@@ -58,7 +63,7 @@ public class FoodMenuServiceImpl implements FoodMenuService {
         Pageable pageable = PageRequest.of(pageNumber, paginateBy, sort);
 
         Restaurant restaurant = restaurantRepository.findById(restaurantId).orElseThrow(() -> new RestaurantException("Restaurant Not Found with id: " + restaurantId));
-
+        log.info("Fetching all food menus for restaurant with id: {} and sortField: {} ",restaurantId, sortField);
         return ResponseEntity.ok(ApiResponseDto.success(foodMenuRepository.findAllByRestaurant(restaurant,pageable).map(FoodMenuMapper::toFoodMenuResponse), HttpStatus.OK.value())) ;
     }
 
@@ -71,7 +76,7 @@ public class FoodMenuServiceImpl implements FoodMenuService {
         if(foodMenuUpdateRequest.name() != null) menu.setName(foodMenuUpdateRequest.name());
         if(foodMenuUpdateRequest.description() != null) menu.setDescription(foodMenuUpdateRequest.description());
         if (foodMenuUpdateRequest.price() != null) menu.setPrice(foodMenuUpdateRequest.price());
-
+        log.info("Food Menu Updated Successfully with id: {} for restaurant with id: {}",menu.getId(),restaurant.getId());
         return ResponseEntity.ok(ApiResponseDto.success(FoodMenuMapper.toFoodMenuResponse(foodMenuRepository.save(menu)),HttpStatus.OK.value()));
     }
 
@@ -81,6 +86,7 @@ public class FoodMenuServiceImpl implements FoodMenuService {
         FoodMenu menu = foodMenuRepository.findByIdAndRestaurant(id,restaurant).orElseThrow(() -> new RuntimeException("Menu item Not Found with id: " + id));
 
         foodMenuRepository.delete(menu);
+        log.info("Food Menu Deleted Successfully with id: {} for restaurant with id: {}",menu.getId(),restaurant.getId());
         return ResponseEntity.ok(ApiResponseDto.success("Menu Deleted Successfully", HttpStatus.OK.value()));
     }
 }
