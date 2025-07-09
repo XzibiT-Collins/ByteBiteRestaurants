@@ -5,6 +5,7 @@ import com.example.restaurant_service.dto.AuthRequestDto;
 import com.example.restaurant_service.dto.AuthResponseDto;
 import com.example.restaurant_service.security.jwt.JwtService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -12,10 +13,12 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Slf4j
 @Service
 public class AuthTokenService {
+    @Value("${auth.username}")
+    private String email;
+    @Value("${auth.password}")
+    private String password;
     private final WebClient webClient;
     private final JwtService jwtService;
-    private String email = "admin@gmail.com";
-    private String password = "collinsxzibit1";
     private String token;
 
     public AuthTokenService(WebClient.Builder webClientBuilder,JwtService jwtService) {
@@ -30,7 +33,7 @@ public class AuthTokenService {
         }
         log.info("Token is expired. Fetching new token.");
         this.token = fetchNewToken();
-        log.info("Token fetched: {}",token);
+        log.info("Token  fetched: {}",token);
         return token;
     }
 
