@@ -81,7 +81,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public ResponseEntity<ApiResponseDto<String>> deleteRestaurant(long id) {
-        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(()-> new RuntimeException("Restaurant Not Found with id: " + id));
+        Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(()-> new RestaurantException("Restaurant Not Found with id: " + id));
         restaurantRepository.delete(restaurant);
         return ResponseEntity.ok(ApiResponseDto.success("Restaurant Deleted Successfully", HttpStatus.OK.value()));
     }
