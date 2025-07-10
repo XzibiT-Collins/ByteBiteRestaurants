@@ -17,7 +17,7 @@ public class ResourceOwnership {
 
     public boolean isRestaurantOwner(long objectId, long userId) {
         return restaurantRepository.findById(objectId)
-                .map(restaurant -> restaurant.getId() == userId)
+                .map(restaurant -> restaurant.getOwnerId() == userId)
                 .orElse(false);
     }
 

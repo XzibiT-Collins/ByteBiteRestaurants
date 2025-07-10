@@ -16,6 +16,7 @@ public class FoodMenuMapper {
     }
 
     public static FoodMenu toFoodMenu(FoodMenuRequest foodMenuRequest) {
+        if(foodMenuRequest == null) throw new NullPointerException("Food Menu Request cannot be Null");
         return FoodMenu
                 .builder()
                 .name(foodMenuRequest.name())

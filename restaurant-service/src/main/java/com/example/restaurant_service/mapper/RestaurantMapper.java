@@ -6,6 +6,8 @@ import com.example.restaurant_service.model.Restaurant;
 
 public class RestaurantMapper {
     public static Restaurant toRestaurant(RestaurantRequest restaurantRequest){
+        if(restaurantRequest == null) throw new NullPointerException("Restaurant Request cannot be Null");
+
         return Restaurant
                 .builder()
                 .name(restaurantRequest.name())
