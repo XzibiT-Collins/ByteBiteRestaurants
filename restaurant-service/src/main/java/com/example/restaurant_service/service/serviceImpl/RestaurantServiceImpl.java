@@ -45,8 +45,10 @@ public class RestaurantServiceImpl implements RestaurantService {
     public ResponseEntity<ApiResponseDto<RestaurantResponse>> addRestaurant(RestaurantRequest restaurantRequest) {
         if(restaurantRequest != null){
             Restaurant restaurant = restaurantRepository.save(RestaurantMapper.toRestaurant(restaurantRequest));
+            log.info("Restaurant Saved Successfully with id: {}",restaurant.getId());
             return ResponseEntity.ok(ApiResponseDto.success(RestaurantMapper.toRestaurantResponse(restaurant), HttpStatus.CREATED.value()));
         }else{
+            log.info("Unable to save restaurant with null request.");
             throw new RestaurantException("Restaurant Request is Null");
         }
     }
@@ -54,7 +56,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public ResponseEntity<ApiResponseDto<RestaurantResponse>> getRestaurantById(long id) {
         Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(()-> new RestaurantException("Restaurant Not Found with id: " + id));
-
+        log.info("Restaurant Found with id: {} ",id);
         return ResponseEntity.ok(ApiResponseDto.success(RestaurantMapper.toRestaurantResponse(restaurant), HttpStatus.OK.value()));
     }
 
@@ -63,7 +65,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         int paginateBy = 10;
         Sort sort = Sort.by(sortField);
         Pageable pageable = PageRequest.of(pageNumber, paginateBy, sort);
-
+        log.info("Fetching all restaurants with pageNumber: {} and sortField: {} ",pageNumber, sortField);
         return ResponseEntity.ok(ApiResponseDto.success(restaurantRepository.findAll(pageable).map(RestaurantMapper::toRestaurantResponse), HttpStatus.OK.value()));
     }
 
@@ -75,7 +77,7 @@ public class RestaurantServiceImpl implements RestaurantService {
         if(restaurantUpdateRequest.location() != null) restaurant.setLocation(restaurantUpdateRequest.location());
         if(restaurantUpdateRequest.email() != null) restaurant.setEmail(restaurantUpdateRequest.email());
         if(restaurantUpdateRequest.phoneNumber() != null) restaurant.setPhoneNumber(restaurantUpdateRequest.phoneNumber());
-
+        log.info("Restaurant Updated Successfully with id: {}",id);
         return ResponseEntity.ok(ApiResponseDto.success(RestaurantMapper.toRestaurantResponse(restaurantRepository.save(restaurant)), HttpStatus.OK.value()));
     }
 
@@ -83,26 +85,23 @@ public class RestaurantServiceImpl implements RestaurantService {
     public ResponseEntity<ApiResponseDto<String>> deleteRestaurant(long id) {
         Restaurant restaurant = restaurantRepository.findById(id).orElseThrow(()-> new RestaurantException("Restaurant Not Found with id: " + id));
         restaurantRepository.delete(restaurant);
+        log.info("Restaurant Deleted Successfully with id: {}",id);
         return ResponseEntity.ok(ApiResponseDto.success("Restaurant Deleted Successfully", HttpStatus.OK.value()));
     }
 
     @KafkaListener(topics = "order-request", groupId = "restaurant-group",containerFactory = "kafkaListenerContainerFactory")
     public void prepareOrder(OrderRequest orderRequest){
-        System.out.println("Preparing Order for: "+ orderRequest);
+        log.info("Preparing Order for: {} ",orderRequest.customerId());
         try{
             Thread.sleep(10000);
         }catch (InterruptedException e){
             throw new RestaurantException("Failed to prepare order.");
         }
-        //TODO fetch user email from user-service
         log.info("Making a request to fetch user details for: {} ",orderRequest.customerId());
         String email = "";
 
         try{
             ResponseEntity<ApiResponseDto<UserResponseDto>> user = userClient.getUserById(orderRequest.customerId());
-            log.info("Response status: {} ",user.getStatusCode());
-            log.warn("Response body: {} ",user.getBody());
-            log.warn("Response headers: {} ",user.getHeaders());
             log.info("User Details fetched for: {} with email: {}",orderRequest.customerId(), user.getBody().getData().email());
             if(user.getBody() != null){
                 email = user.getBody().getData().email();

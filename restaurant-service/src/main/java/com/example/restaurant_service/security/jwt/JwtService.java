@@ -6,6 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -18,7 +19,8 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
-    private final String secret="OJLJzlvWjstALHdGyoW7mBdlmqTX71ow0gK8aPzeX28=";
+    @Value("${jwt.secret}")
+    private String secret;
     private SecretKey secretKeyEncoded;
 
     @PostConstruct
